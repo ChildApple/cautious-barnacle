@@ -1,0 +1,179 @@
+;Copyright Pablo Perez Alvarez 2016 All rights reserved.
+#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+; #Warn  ; Enable warnings to assist with detecting common errors.
+SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
+SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
+#singleinstance force
+
+
+
+
+;Gui
+;////////////////////////////////////
+;////////////////////////////////////////////////////////////////////
+
+
+Gui, Add, Edit, x287 y24 w830 h330 vNarrativeTxt, Narrative
+Gui, Add, ListBox, x7 y24 w260 h329 vVitalsBox hwndHVitals,
+Gui, Add, Edit, x12 y369 w50 h20 +Number vSystolic, 120
+Gui, Add, Edit, x72 y369 w50 h20 +Number vDiastolic, 80
+Gui, Add, Edit, x142 y369 w60 h20 +Number vSats, Spo2`%
+Gui, Add, Edit, x12 y399 w50 h20 +Number vResps, RR
+Gui, Add, Edit, x72 y399 w90 h20 vTemp, Temperature
+Gui, Add, Button, x182 y399 w100 h30 gSVitals, Save Vitals
+Gui, Add, CheckBox, x362 y399 w100 h30 vHeent1, HEENT
+Gui, Add, CheckBox, x492 y399 w100 h30 vEyes1, EYES
+Gui, Add, CheckBox, x622 y399 w90 h30 vLungs1, LUNGS
+Gui, Add, CheckBox, x882 y399 w100 h30 vExtremities1, EXTREMITIES
+Gui, Add, CheckBox, x1022 y399 w100 h30 vNeuro1, NEURO
+Gui, Add, CheckBox, x742 y399 w100 h30 vAbdomen1, ABDOMEN
+Gui, Add, Text, x332 y369 w790 h20 , If any abnomralities are noted in any of the below check it.
+Gui, Add, Edit, x22 y449 w350 h140 vAllergiesInput ,
+Gui, Add, Edit, x412 y449 w370 h140 vMedsRx ,
+Gui, Add, Button, x812 y449 w290 h140 gCreateReport, Accept
+Gui, Add, Text, x22 y429 w60 h20 +BackgroundTrans, Allergies
+Gui, Add, Text, x412 y429 w100 h20 +BackgroundTrans, Medications
+Gui, Show, w1135 h618, Fisdap report writer
+return
+
+GuiClose:
+ExitApp
+
+
+;Save vitals Button.
+;///////////////////////////////////
+;/////////////////////////////////////////////////////////////////////
+SVitals: ;vitals save button
+Gui,Submit, NoHide
+vital1 =
+vital1 = |%Systolic%/%Diastolic% Spo2:%Sats% RR:%Resps% T:%Temp%|
+VitalsList = %VitalsList%%Vital1%
+GuiControl,, VitalsBox, %VitalsList%
+return
+
+;label
+;///////////////////////////////////
+;/////////////////////////////////////////////////////////////////////
+CreateReport:
+Gui, Submit, NoHide
+loop, parse, VitalsList, | ;this creates the vitals columns
+	{
+		If Mod(A_Index, 2)=0
+		{
+			VitalsListOut = %VitalsListOut%`r`n%A_LoopField%
+		}
+		else
+			continue
+	}
+;Assesment logic
+;//////////////////////////////////
+;/////////////////////////////////////////////////////////////////////
+if %Heent1%=0 
+	HeentTxt = HEENT: Oral mucosa pink, moist; no exudates or redness
+Else
+{
+	InputBox, HeentTxt2 , HEENT, Enter Findings
+	HeentTxt = HEENT:%HeentTxt2%
+}
+
+if %Eyes1%=0 
+	EyesTxt = EYES: Pupils equal and reactive to light
+Else
+{
+	InputBox, EyesTxt2 , EYES, Enter Findings
+	EyesTxt = EYES:%EyesTxt2%
+}
+
+if %Lungs1%=0 
+	LungsTxt = LUNGS: Clear equal and bilateral
+Else
+{
+	InputBox, LungsTxt2 , LUNGS, Enter Findings
+	LungsTxt = LUNGS:%LungsTxt2%
+}
+
+if %Abdomen1%=0 
+	AbdomenTxt = ABDOMEN: no DCAPBTLS; no rebound tenderness; no distension or rigidity noted. 
+Else
+{
+	InputBox, AbdomenTxt2 , ABDOMEN, Enter Findings
+	AbdomenTxt = ABDOMEN:%AbdomenTxt2%
+}
+
+if %Extremities1%=0 
+	ExtremitiesTxt = EXTREMITIES: PMS on all extremities no DCAPBTLS
+Else
+{
+	InputBox, ExtremitiesTxt2 , EXTREMITIES, Enter Findings
+	ExtremitiesTxt = EXTREMITIES:%ExtremitiesTxt2%
+}
+
+if %Neuro1%=0 
+	NeuroTxt = NEURO:No abnormalities or deficits noted
+Else
+{
+	InputBox, NeuroTxt2 , NEURO, Enter Findings 
+	NeuroTxt = NEURO:%NeuroTxt2%
+}
+;Allegies & Meds logic
+;///////////////////////
+if AllergiesInput=
+	AllergiesTxt = ALLERGIES:NKDA
+Else
+{
+	AllergiesInput := RegExReplace(AllergiesInput, "(\n){1}", ", " )
+	AllergiesTxt = ALLERGIES:%AllergiesInput%
+}	
+	
+if MedsRx=
+	MedsRx= MEDICATIONS:NONE
+Else
+{
+	MedsRx := RegExReplace(MedsRx, "(\n){1}", ", " )
+	MedsRx = MEDICATIONS:%MedsRx%
+}	
+	
+	
+;OUTPUT
+;/////////////////////////////////
+;////////////////////////////////////////////////////////////////////
+
+clipboard = %NarrativeTxt% `r`n`r`n %HeentTxt% `r`n %EyesTxt% `r`n %LungsTxt% `r`n %AbdomenTxt% `r`n %ExtremitiesTxt% `r`n %NeuroTxt% `r`n %AllergiesTxt% `r`n %MedsRx% `r`n %VitalsListOut%	
+	
+MsgBox , , , %NarrativeTxt% `r `r %HeentTxt% `r %EyesTxt% `r %LungsTxt% `r %AbdomenTxt% `r %ExtremitiesTxt% `r %NeuroTxt% `r %AllergiesTxt% `r %MedsRx% `r %VitalsListOut%
+
+
+
+
+
+
+;Shurtcuts
+;//////////////////////////////////
+;/////////////////////////////////////////////////////////////////////
+
+::aos1::Arrived on scene to find 
+::pt::patient
+::assess1::
+(
+HEENT: Oral mucosa pink, moist; no exudates or redness
+EYES: Pupils equal and reactive to light
+LUNGS: Clear equal and bilateral
+ABDOMEN: no DCAPBTLS; no rebound tenderness; no distension or rigidity noted. 
+EXTREMITIES: PMS on all extremities no DCAPBTLS 
+NEURO: No abnormalities or deficits noted.
+ALLERGIES: NKDA
+MEDICATIONS: None
+)
+::rt::right
+::lt::left
+::nkda::no known drug allergies
+::er::emergency room
+::ems::EMS
+::lpm::liters per minute
+::yom::-year-old-male
+::yof::-year-old-female
+::mmnw::Memorial Herman North West
+::difb::difficulty breathing
+::aloc::altered level of conciousness
+::rsi::rapid sequence intubation
+
